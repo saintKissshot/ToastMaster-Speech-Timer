@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ToastMaster Speech Timer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        padding: 20px;
+      }
+      #timer {
+        font-size: 3em;
+        margin: 20px 0;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>ToastMaster Speech Timer</h1>
+      <div id="setup">
+        <label for="duration">Enter Speech Duration (in minutes):</label>
+        <input type="number" id="duration" min="1" required />
+        <br /><br />
+        <label for="type">Choose Speech Type:</label>
+        <select id="type">
+          <option value="Prepared">Prepared Speech</option>
+          <option value="Others">Others</option>
+        </select>
+        <br /><br />
+        <button onclick="startTimer()">Start</button>
+      </div>
+
+      <div id="timer-screen" class="hidden">
+        <div id="timer">00:00</div>
+        <button onclick="pauseTimer()">Pause</button>
+        <button onclick="resetTimer()">Restart</button>
+        <button onclick="endSession()">End</button>
+      </div>
+    </div>
+
+    <script>
+      let durationInput, typeInput, timerDisplay, setupScreen, timerScreen;
+      let timer,
+        totalSeconds,
+        remainingSeconds,
+        isPaused = false;
+
+      window.onload = function () {
+        durationInput = document.getElementById("duration");
+        typeInput = document.getElementById("type");
+        timerDisplay = document.getElementById("timer");
+        setupScreen = document.getElementById("setup");
+        timerScreen = document.getElementById("timer-screen");
+      };
+
+      function startTimer() {
+        const duration = parseInt(durationInput.value, 10);
+        if (isNaN(duration) || duration <= 0) {
+          alert("Please enter a valid duration.");
+          return;
+        }
+
+        totalSeconds = duration * 60;
+        remainingSeconds = totalSeconds;
+
+        setupScreen.classList.add("hidden");
+        timerScreen.classList.remove("hidden");
+
+        updateDisplay();
+        timer = setInterval(countdown, 1000);
+      }
+
+      function countdown() {
+        if (isPaused) return;
+
+        remainingSeconds--;
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timer);
+          handleTimeUp();
+          return;
+        }
+
+        updateDisplay();
+        handleBackgroundChange();
+      }
+
+      function updateDisplay() {
+        const minutes = Math.floor(remainingSeconds / 60)
+          .toString()
+          .padStart(2, "0");
+        const seconds = (remainingSeconds % 60).toString().padStart(2, "0");
+        timerDisplay.textContent = `${minutes}:${seconds}`;
+      }
+
+      function handleBackgroundChange() {
+        const type = typeInput.value;
+
+        if (type === "Prepared") {
+          if (remainingSeconds === 120) {
+            document.body.style.backgroundColor = "green";
+          } else if (remainingSeconds === 60) {
+            document.body.style.backgroundColor = "yellow";
+          }
+        } else {
+          if (remainingSeconds === 60) {
+            document.body.style.backgroundColor = "green";
+          } else if (remainingSeconds === 30) {
+            document.body.style.backgroundColor = "yellow";
+          }
+        }
+      }
+
+      function handleTimeUp() {
+        document.body.style.backgroundColor = "red";
+        timerDisplay.textContent = "Time's up! You have 30s to finish";
+
+        setTimeout(() => {
+          remainingSeconds = 30;
+          timer = setInterval(extraTimeCountdown, 1000);
+        }, 1000);
+      }
+
+      function extraTimeCountdown() {
+        if (isPaused) return;
+
+        remainingSeconds--;
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timer);
+          document.body.style.backgroundColor = "gray";
+          timerDisplay.textContent = "Disqualified! Stop immediately";
+          return;
+        }
+
+        updateDisplay();
+      }
+
+      function pauseTimer() {
+        isPaused = !isPaused;
+      }
+
+      function resetTimer() {
+        clearInterval(timer);
+        startTimer();
+      }
+
+      function endSession() {
+        clearInterval(timer);
+        document.body.style.backgroundColor = "";
+        setupScreen.classList.remove("hidden");
+        timerScreen.classList.add("hidden");
+      }
+    </script>
+  </body>
+</html>
